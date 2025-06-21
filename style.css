@@ -1,0 +1,282 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #FFFFFF;
+    transition: background-color 1s ease-out;
+    overflow: hidden;
+    height: 100vh;
+    position: relative;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    position: relative;
+    z-index: 10;
+}
+
+.dice-container {
+    position: relative;
+    margin-bottom: 80px;
+}
+
+.dice {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+    animation: pulse 2s ease-in-out infinite alternate;
+}
+
+.dice:hover {
+    transform: scale(1.05);
+}
+
+.dice:focus {
+    outline: 2px solid rgba(0, 123, 255, 0.8);
+    outline-offset: 4px;
+}
+
+/* Pulsating glow animation */
+@keyframes pulse {
+    0% {
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2)) drop-shadow(0 0 20px rgba(0, 123, 255, 0.6));
+        transform: scale(1.0);
+    }
+    100% {
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2)) drop-shadow(0 0 30px rgba(0, 123, 255, 0.8));
+        transform: scale(1.1);
+    }
+}
+
+/* Rolling animation */
+@keyframes roll {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg);
+    }
+    100% {
+        transform: rotateX(1440deg) rotateY(1440deg);
+    }
+}
+
+.dice.rolling {
+    animation: roll 2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+}
+
+.dice.finished {
+    animation: none;
+    pointer-events: auto;
+}
+
+/* Result text styling */
+.result-text {
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 40px;
+}
+
+.result-text.show {
+    opacity: 1;
+}
+
+.result-text h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.result-text h3 {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+}
+
+/* Word map styling */
+.word-map {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    opacity: 0;
+    transition: opacity 0.8s ease-in;
+    pointer-events: none;
+}
+
+.word-map.show {
+    opacity: 1;
+}
+
+.word-map .word {
+    position: absolute;
+    color: white;
+    font-weight: 500;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+    cursor: default;
+    user-select: none;
+    transition: transform 0.3s ease, font-size 0.3s ease;
+    animation: fadeInWord 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.word-map .word:hover {
+    transform: scale(1.1);
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+}
+
+/* Different font sizes for visual variety */
+.word-map .word.size-small {
+    font-size: 16px;
+}
+
+.word-map .word.size-medium {
+    font-size: 20px;
+}
+
+.word-map .word.size-large {
+    font-size: 24px;
+}
+
+@keyframes fadeInWord {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+    }
+    100% {
+        opacity: 0.9;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Ripple effect */
+.ripple {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.ripple.animate {
+    animation: ripple-expand 1s ease-out forwards;
+}
+
+@keyframes ripple-expand {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    100% {
+        width: 300vmax;
+        height: 300vmax;
+        opacity: 0.9;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .dice {
+        animation: none;
+    }
+    
+    .dice.rolling {
+        animation: none;
+        transform: scale(1.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .ripple.animate {
+        animation: none;
+        width: 300vmax;
+        height: 300vmax;
+        opacity: 0.9;
+        transition: opacity 0.5s ease;
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .dice {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .dice-container {
+        margin-bottom: 60px;
+    }
+    
+    .result-text h2 {
+        font-size: 20px;
+    }
+    
+    .result-text h3 {
+        font-size: 28px;
+    }
+    
+    .word-map {
+        max-width: 90%;
+        height: 250px;
+    }
+    
+    .word-map .word.size-small {
+        font-size: 14px;
+    }
+    
+    .word-map .word.size-medium {
+        font-size: 18px;
+    }
+    
+    .word-map .word.size-large {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dice {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .dice-container {
+        margin-bottom: 50px;
+    }
+    
+    .result-text h2 {
+        font-size: 18px;
+    }
+    
+    .result-text h3 {
+        font-size: 24px;
+    }
+    
+    .word-map {
+        height: 200px;
+    }
+    
+    .word-map .word.size-small {
+        font-size: 12px;
+    }
+    
+    .word-map .word.size-medium {
+        font-size: 16px;
+    }
+    
+    .word-map .word.size-large {
+        font-size: 20px;
+    }
+}

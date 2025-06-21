@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Board Dice Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="dice-container">
+            <svg class="dice" id="dice" width="200" height="200" viewBox="0 0 200 200" aria-label="Roll dice to get your color" tabindex="0" role="button">
+                <!-- Dice face with gradient -->
+                <defs>
+                    <linearGradient id="diceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+                        <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="dotShadow">
+                        <feDropShadow dx="1" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+                    </filter>
+                </defs>
+                
+                <!-- Main dice body -->
+                <rect x="10" y="10" width="180" height="180" rx="8" ry="8" 
+                      fill="url(#diceGradient)" 
+                      stroke="#ccc" 
+                      stroke-width="2"
+                      filter="url(#glow)"/>
+                
+                <!-- Dots container -->
+                <g id="dots">
+                    <!-- Default: showing 1 dot -->
+                    <circle cx="100" cy="100" r="8" fill="#333333" filter="url(#dotShadow)"/>
+                </g>
+            </svg>
+        </div>
+        
+        <div class="result-text" id="resultText" aria-live="polite">
+            <!-- Text will appear here after roll -->
+        </div>
+        
+        <div class="word-map" id="wordMap">
+            <!-- Word map will appear here after color is revealed -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
