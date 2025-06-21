@@ -194,6 +194,10 @@
                 // Save the result to localStorage
                 const timestamp = new Date().toISOString();
                 saveCardResultToLocalStorage(finalGenre, revealedGenres, timestamp);
+                // Redirect to chat.html after a short delay
+                setTimeout(() => {
+                  window.location.href = 'chat.html';
+                }, 1200);
               }
             }, 400);
           }

@@ -396,6 +396,10 @@
           console.log('Extracted Band Name:', bandName);
           console.log('Extracted Album Title:', albumTitle);
           
+          // Redirect to the final moodboard page after a short delay
+          setTimeout(() => {
+            window.location.href = 'final_moodboard.html';
+          }, 1200);
           // Show confirmation to user
           //this.addMessage('system', '✅ Final output detected - conversation saved to localStorage');
           

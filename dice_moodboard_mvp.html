@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dice Moodboard MVP</title>
+
+    <!-- Adobe Webfont -->
+    <link rel="stylesheet" href="https://use.typekit.net/hnt1nqp.css" />
+
+    <style>
+        /* Global reset & font */
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'neu-haas-grotesk-text', sans-serif;
+            background: #f2f0e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        /* Final result container */
+        
+        #finalCard {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        
+        #finalCard.visible {
+            opacity: 1;
+        }
+        /* Typography */
+        
+        .label {
+            font-size: 1rem;
+            color: #000;
+            margin-bottom: 0.25rem;
+        }
+        
+        .value {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            /* Color will be set dynamically in JS */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="finalCard">
+        <p class="label">Your Color</p>
+        <h1 id="color" class="value"></h1>
+
+        <p class="label">Genre</p>
+        <h1 id="genre" class="value"></h1>
+
+        <p class="label">Band Name</p>
+        <h1 id="bandName" class="value"></h1>
+
+        <p class="label">Album Name</p>
+        <h1 id="albumName" class="value"></h1>
+    </div>
+
+    <script>
+        // Sample data — replace these values dynamically as needed
+        const data = {
+            color: 'Violet',
+            genre: 'Future Funk',
+            bandName: 'Lethal Tempo',
+            albumName: 'Into the Chaos'
+        };
+
+        // Map of base colors to hex codes
+        const colorMap = {
+            Red: '#FF0000',
+            Orange: '#FFA500',
+            Yellow: '#FFD700',
+            Green: '#008000',
+            Blue: '#0000FF',
+            Violet: '#EE82EE'
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Populate fields
+            document.getElementById('color').textContent = data.color;
+            document.getElementById('genre').textContent = data.genre;
+            document.getElementById('bandName').textContent = data.bandName;
+            document.getElementById('albumName').textContent = data.albumName;
+
+            // Determine accent color based on data.color
+            const accentColor = colorMap[data.color] || '#000';
+            document.querySelectorAll('.value').forEach(el => {
+                el.style.color = accentColor;
+            });
+
+            // Fade in after 1 second
+            setTimeout(() => {
+                document.getElementById('finalCard').classList.add('visible');
+            }, 1000);
+        });
+    </script>
+
+</body>
+
+</html>
