@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💬 AI Chat Interface</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      height: 66vh;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .chat-header {
+      padding: 16px 20px;
+      background: #007bff;
+      color: white;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #fafafa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .message {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    
+    .message.user {
+      background: #007bff;
+      color: white;
+      margin-left: auto;
+      text-align: right;
+    }
+    
+    .message.assistant {
+      background: white;
+      border: 1px solid #e0e0e0;
+      margin-right: auto;
+    }
+    
+    .message.system {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      color: #6c757d;
+      font-style: italic;
+      text-align: center;
+      margin: 0 auto;
+    }
+    
+    .chat-input-container {
+      padding: 16px 20px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+    }
+    
+    .chat-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 40px;
+      max-height: 120px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    
+    .chat-input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    
+    .send-button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .send-button:hover:not(:disabled) {
+      background: #0056b3;
+    }
+    
+    .send-button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .typing-indicator {
+      display: none;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      max-width: 80%;
+      margin-right: auto;
+    }
+    
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      background: #007bff;
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes typing {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    
+    /* Markdown styling */
+    .message h1, .message h2, .message h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    
+    .message p {
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    
+    .message ul, .message ol {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    .message code {
+      background: #f1f3f4;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.9em;
+    }
+    
+    .message pre {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+    
+    .message blockquote {
+      border-left: 4px solid #007bff;
+      margin: 8px 0;
+      padding-left: 12px;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      AI Assistant
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+      <div class="message system">
+        Connecting to AI assistant...
+      </div>
+    </div>
+    
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="typing-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    
+    <div class="chat-input-container">
+      <textarea 
+        class="chat-input" 
+        id="chatInput" 
+        placeholder="Type your message here..."
+        rows="2"
+      ></textarea>
+      <button class="send-button" id="sendButton">Send Message</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    class ChatInterface {
+      constructor() {
+        this.chatMessages = document.getElementById('chatMessages');
+        this.chatInput = document.getElementById('chatInput');
+        this.sendButton = document.getElementById('sendButton');
+        this.typingIndicator = document.getElementById('typingIndicator');
+        this.runId = null;
+        this.apiBase = 'https://agents.toolhouse.ai/a8449971-ae15-4b63-a5fc-198cfbb2ab02';
+        this.conversationHistory = [];
+        this.finalOutputDetected = false;
+        
+        this.init();
+      }
+      
+      init() {
+        // Event listeners
+        this.sendButton.addEventListener('click', () => this.sendMessage());
+        this.chatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.sendMessage();
+          }
+        });
+        
+        // Set up DOM observer for "final output" detection
+        this.setupFinalOutputObserver();
+        
+        // Initialize conversation
+        this.initializeChat();
+      }
+      
+      setupFinalOutputObserver() {
+        // Create a MutationObserver to watch for DOM changes
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+              this.checkForFinalOutput();
+            }
+          });
+        });
+        
+        // Start observing the chat messages container
+        observer.observe(this.chatMessages, {
+          childList: true,
+          subtree: true,
+          characterData: true
+        });
+        
+        // Also check periodically as a fallback
+        setInterval(() => {
+          this.checkForFinalOutput();
+        }, 1000);
+      }
+      
+      checkForFinalOutput() {
+        if (this.finalOutputDetected) return;
+        
+        const chatContent = this.chatMessages.textContent.toLowerCase();
+        
+        if (chatContent.includes('final output')) {
+          console.log('Final output detected! Saving conversation state...');
+          this.finalOutputDetected = true;
+          this.saveFinalConversationState();
+        }
+      }
+      
+      saveFinalConversationState() {
+        try {
+          // Get all messages from the DOM
+          const messages = Array.from(this.chatMessages.querySelectorAll('.message')).map(msg => ({
+            type: msg.classList.contains('user') ? 'user' : 
+                  msg.classList.contains('assistant') ? 'assistant' : 'system',
+            content: msg.textContent || msg.innerHTML,
+            timestamp: new Date().toISOString()
+          }));
+          
+          // Extract the final output specifically
+          const finalOutputMessage = messages.find(msg => 
+            msg.type === 'assistant' && 
+            msg.content.toLowerCase().includes('final output')
+          );
+          
+          // Parse and clean the final output
+          let extractedFinalOutput = null;
+          if (finalOutputMessage) {
+            // Try to extract content after "final output"
+            const content = finalOutputMessage.content;
+            const finalOutputIndex = content.toLowerCase().indexOf('final output');
+            
+            if (finalOutputIndex !== -1) {
+              // Get everything after "final output"
+              const afterFinalOutput = content.substring(finalOutputIndex);
+              
+              // More precise removal - only remove "final output" and immediate colon/space
+              extractedFinalOutput = afterFinalOutput
+                .replace(/^final output:?\s?/i, '') // Only remove immediate space, not all whitespace
+                .trim(); // Then trim leading/trailing whitespace
+              
+              console.log('Debug - Original content:', content);
+              console.log('Debug - After final output:', afterFinalOutput);
+              console.log('Debug - Extracted final output:', extractedFinalOutput);
+            }
+          }
+          
+          // Create comprehensive conversation state
+          const conversationState = {
+            runId: this.runId,
+            messages: messages,
+            conversationHistory: this.conversationHistory,
+            finalOutput: extractedFinalOutput, // ✅ Extracted final output
+            finalOutputRaw: finalOutputMessage ? finalOutputMessage.content : null, // ✅ Full message
+            finalOutputTimestamp: new Date().toISOString(),
+            totalMessages: messages.length,
+            userMessages: messages.filter(m => m.type === 'user').length,
+            assistantMessages: messages.filter(m => m.type === 'assistant').length
+          };
+          
+          // Save to localStorage
+          localStorage.setItem('chatConversationState', JSON.stringify(conversationState));
+          localStorage.setItem('lastChatSession', JSON.stringify(conversationState));
+          
+          // Get existing chat history or initialize
+          let chatHistory = JSON.parse(localStorage.getItem('chatSessionHistory')) || [];
+          chatHistory.unshift(conversationState);
+          
+          // Keep only last 10 chat sessions
+          if (chatHistory.length > 10) {
+            chatHistory = chatHistory.slice(0, 10);
+          }
+          
+          localStorage.setItem('chatSessionHistory', JSON.stringify(chatHistory));
+          
+          // Create complete game session combining all data
+          this.saveCompleteGameSession(conversationState);
+          
+          console.log('Conversation state saved successfully:', conversationState);
+          console.log('Extracted Final Output:', extractedFinalOutput);
+          
+          // Show confirmation to user
+          this.addMessage('system', '✅ Final output detected - conversation saved to localStorage');
+          
+        } catch (error) {
+          console.error('Error saving conversation state:', error);
+          this.addMessage('system', '❌ Error saving conversation state');
+        }
+      }
+      
+      saveCompleteGameSession(conversationState) {
+        try {
+          // Get previous game data
+          const lastDiceResult = JSON.parse(localStorage.getItem('diceGameLastResult')) || null;
+          const lastCardResult = JSON.parse(localStorage.getItem('cardGameResult')) || null;
+          
+          // Create complete session
+          const completeSession = {
+            dice: lastDiceResult,
+            cards: lastCardResult,
+            chat: conversationState,
+            sessionTimestamp: new Date().toISOString(),
+            sessionId: `session_${Date.now()}`
+          };
+          
+          // Save complete session
+          localStorage.setItem('completeGameSession', JSON.stringify(completeSession));
+          
+          // Add to complete session history
+          let completeHistory = JSON.parse(localStorage.getItem('completeSessionHistory')) || [];
+          completeHistory.unshift(completeSession);
+          
+          // Keep only last 5 complete sessions
+          if (completeHistory.length > 5) {
+            completeHistory = completeHistory.slice(0, 5);
+          }
+          
+          localStorage.setItem('completeSessionHistory', JSON.stringify(completeHistory));
+          
+          console.log('Complete game session saved:', completeSession);
+          
+        } catch (error) {
+          console.error('Error saving complete game session:', error);
+        }
+      }
+      
+      async initializeChat() {
+        try {
+          this.showTyping();
+          
+          const response = await fetch(this.apiBase, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          // Capture the run ID from headers
+          this.runId = response.headers.get('X-Toolhouse-Run-ID');
+          console.log('Run ID captured:', this.runId);
+          
+          // Clear system message
+          this.chatMessages.innerHTML = '';
+          
+          // Handle streaming response
+          await this.handleStreamingResponse(response);
+          
+        } catch (error) {
+          console.error('Error initializing chat:', error);
+          this.addMessage('system', 'Failed to connect to AI assistant. Please refresh the page.');
+        } finally {
+          this.hideTyping();
+        }
+      }
+      
+      async sendMessage() {
+        const message = this.chatInput.value.trim();
+        if (!message || !this.runId) return;
+        
+        // Store message in conversation history
+        this.conversationHistory.push({
+          type: 'user',
+          content: message,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Add user message to chat
+        this.addMessage('user', message);
+        this.chatInput.value = '';
+        this.sendButton.disabled = true;
+        this.showTyping();
+        
+        try {
+          const response = await fetch(`${this.apiBase}/${this.runId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: message
+            })
+          });
+          
+          // Handle streaming response
+          await this.handleStreamingResponse(response);
+          
+        } catch (error) {
+          console.error('Error sending message:', error);
+          this.addMessage('system', 'Failed to send message. Please try again.');
+        } finally {
+          this.hideTyping();
+          this.sendButton.disabled = false;
+        }
+      }
+      
+      async handleStreamingResponse(response) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let assistantMessage = '';
+        let messageElement = null;
+        
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            assistantMessage += chunk;
+            
+            // Create message element if it doesn't exist
+            if (!messageElement) {
+              messageElement = this.addMessage('assistant', '');
+            }
+            
+            // Update message content with markdown rendering
+            messageElement.innerHTML = marked.parse(assistantMessage);
+            
+            // Scroll to bottom
+            this.scrollToBottom();
+          }
+          
+          // Store complete assistant response in conversation history
+          if (assistantMessage) {
+            this.conversationHistory.push({
+              type: 'assistant',
+              content: assistantMessage,
+              timestamp: new Date().toISOString()
+            });
+          }
+          
+        } catch (error) {
+          console.error('Error reading stream:', error);
+          if (messageElement) {
+            messageElement.innerHTML = 'Error receiving response.';
+          }
+        }
+      }
+      
+      addMessage(type, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        
+        if (type === 'assistant' && content) {
+          messageDiv.innerHTML = marked.parse(content);
+        } else {
+          messageDiv.textContent = content;
+        }
+        
+        this.chatMessages.appendChild(messageDiv);
+        this.scrollToBottom();
+        
+        return messageDiv;
+      }
+      
+      showTyping() {
+        this.typingIndicator.style.display = 'block';
+        this.scrollToBottom();
+      }
+      
+      hideTyping() {
+        this.typingIndicator.style.display = 'none';
+      }
+      
+      scrollToBottom() {
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+      }
+    }
+    
+    // Initialize chat interface when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      new ChatInterface();
+    });
+    
+    // Expose functions to global scope for console access
+    window.getChatConversationState = function() {
+      return JSON.parse(localStorage.getItem('chatConversationState')) || null;
+    };
+    
+    window.getLastChatSession = function() {
+      return JSON.parse(localStorage.getItem('lastChatSession')) || null;
+    };
+    
+    window.getChatSessionHistory = function() {
+      return JSON.parse(localStorage.getItem('chatSessionHistory')) || [];
+    };
+    
+    window.getCompleteGameSession = function() {
+      return JSON.parse(localStorage.getItem('completeGameSession')) || null;
+    };
+    
+    window.getCompleteSessionHistory = function() {
+      return JSON.parse(localStorage.getItem('completeSessionHistory')) || [];
+    };
+    
+    // ✅ NEW: Easy access to final output
+    window.getFinalOutput = function() {
+      const session = JSON.parse(localStorage.getItem('completeGameSession')) || null;
+      if (session && session.chat && session.chat.finalOutput) {
+        return session.chat.finalOutput;
+      }
+      return null;
+    };
+    
+    window.getFinalOutputRaw = function() {
+      const session = JSON.parse(localStorage.getItem('completeGameSession')) || null;
+      if (session && session.chat && session.chat.finalOutputRaw) {
+        return session.chat.finalOutputRaw;
+      }
+      return null;
+    };
+    
+    window.getGameSummary = function() {
+      const session = JSON.parse(localStorage.getItem('completeGameSession')) || null;
+      if (!session) return null;
+      
+      return {
+        dice: {
+          color: session.dice?.color || null,
+          words: session.dice?.words || []
+        },
+        cards: {
+          genre: session.cards?.finalGenre || null
+        },
+        chat: {
+          finalOutput: session.chat?.finalOutput || null,
+          totalMessages: session.chat?.totalMessages || 0
+        },
+        sessionId: session.sessionId,
+        timestamp: session.sessionTimestamp
+      };
+    };
+    
+    window.clearChatData = function() {
+      localStorage.removeItem('chatConversationState');
+      localStorage.removeItem('lastChatSession');
+      localStorage.removeItem('chatSessionHistory');
+      localStorage.removeItem('completeGameSession');
+      localStorage.removeItem('completeSessionHistory');
+      console.log('Chat data cleared');
+    };
+  </script>
+</body>
+</html>

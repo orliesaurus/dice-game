@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎴 Pick Your Genre</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      color: #FFD700;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .card-container {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .card {
+      width: 100px;
+      height: 150px;
+      background-color: #FDF5E6;
+      color: black;
+      border: 2px solid #000;
+      border-radius: 8px;
+      box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.3s, opacity 0.3s;
+      text-align: center;
+    }
+    .card.selected {
+      transform: translateY(-10px);
+      border: 2px solid #FFD700;
+    }
+    .fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="instruction">PICK 3 CARDS</h1>
+  <div class="card-container" id="cardContainer"></div>
+
+  <script>
+    const instruction = document.getElementById('instruction');
+    const cardContainer = document.getElementById('cardContainer');
+    const genrePool = [
+      "Synthwave", "Vaporwave", "Ambient", "Breakcore", "Glitch Pop", "Electroclash", "IDM (Intelligent Dance Music)", "Trip-Hop",
+      "Shoegaze", "Post-Rock", "Math Rock", "Garage Rock", "Grunge", "Punk", "Psychedelic Rock", "Emo Revival",
+      "Indie Pop", "Dream Pop", "Hyperpop", "Bedroom Pop", "Art Pop", "Bubblegum Pop", "Lo-fi Pop", "Synthpop",
+      "Boom Bap", "Cloud Rap", "Trap", "Jazz Rap", "R&B", "Alt R&B", "Drill", "Lo-fi Hip-Hop",
+      "Jazz Fusion", "Acid Jazz", "Neoclassical", "Baroque Pop", "Experimental Jazz", "Chillhop", "Electroacoustic", "Orchestral",
+      "Bossa Nova", "Afrobeat", "Reggaeton", "Korean Indie", "Celtic Folk", "City Pop", "Tuvan Throat Singing", "Latin Psychedelia"
+    ];
+
+    let pickedCards = [];
+
+    // Function to save card game result to localStorage
+    function saveCardResultToLocalStorage(selectedGenre, pickedGenres, timestamp) {
+      const cardResult = {
+        finalGenre: selectedGenre,
+        pickedGenres: pickedGenres,
+        timestamp: timestamp
+      };
+      
+      // Save the card result separately
+      localStorage.setItem('cardGameResult', JSON.stringify(cardResult));
+      
+      // Also update the combined game session data
+      const lastDiceResult = JSON.parse(localStorage.getItem('diceGameLastResult')) || null;
+      if (lastDiceResult) {
+        const combinedSession = {
+          dice: lastDiceResult,
+          cards: cardResult,
+          sessionTimestamp: timestamp
+        };
+        
+        // Get existing sessions or initialize empty array
+        let gameSessions = JSON.parse(localStorage.getItem('gameSessionHistory')) || [];
+        
+        // Add new session to the beginning
+        gameSessions.unshift(combinedSession);
+        
+        // Keep only the last 25 sessions
+        if (gameSessions.length > 25) {
+          gameSessions = gameSessions.slice(0, 25);
+        }
+        
+        localStorage.setItem('gameSessionHistory', JSON.stringify(gameSessions));
+        localStorage.setItem('lastGameSession', JSON.stringify(combinedSession));
+      }
+      
+      console.log('Card game result saved to localStorage:', cardResult);
+    }
+
+    // Function to get card game result from localStorage
+    function getCardResult() {
+      return JSON.parse(localStorage.getItem('cardGameResult')) || null;
+    }
+
+    // Function to get complete game sessions
+    function getGameSessions() {
+      return JSON.parse(localStorage.getItem('gameSessionHistory')) || [];
+    }
+
+    // Function to get last complete session
+    function getLastSession() {
+      return JSON.parse(localStorage.getItem('lastGameSession')) || null;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function dealCards() {
+      const selectedGenres = shuffle([...genrePool]).slice(0, 6);
+      selectedGenres.forEach(genre => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.genre = genre;
+        card.textContent = '🎵';
+        cardContainer.appendChild(card);
+      });
+    }
+
+    function handleInitialPick(e) {
+      if (!e.target.classList.contains('card')) return;
+
+      const card = e.target;
+      if (card.classList.contains('selected')) {
+        card.classList.remove('selected');
+        pickedCards = pickedCards.filter(c => c !== card);
+      } else if (pickedCards.length < 3) {
+        card.classList.add('selected');
+        pickedCards.push(card);
+      }
+
+      const remaining = 3 - pickedCards.length;
+      instruction.textContent = `PICK ${remaining} CARD${remaining !== 1 ? 'S' : ''}`;
+
+      if (pickedCards.length === 3) {
+        cardContainer.removeEventListener('click', handleInitialPick);
+        setTimeout(() => {
+          revealGenres();
+        }, 800);
+      }
+    }
+
+    function revealGenres() {
+      const revealedGenres = pickedCards.map(card => card.dataset.genre);
+      cardContainer.innerHTML = '';
+      revealedGenres.forEach(genre => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.dataset.genre = genre;
+        div.textContent = genre;
+        cardContainer.appendChild(div);
+      });
+      instruction.textContent = 'DISCARD 2 CARDS';
+
+      let discardedCount = 0;
+      cardContainer.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', () => {
+          if (discardedCount < 2 && !card.classList.contains('fade-out')) {
+            card.classList.add('fade-out');
+            discardedCount++;
+            setTimeout(() => {
+              card.remove();
+              if (discardedCount === 2) {
+                const remainingCard = cardContainer.querySelector('.card');
+                const finalGenre = remainingCard.dataset.genre;
+                instruction.textContent = `YOUR GENRE IS ${finalGenre.toUpperCase()}!`;
+                cardContainer.innerHTML = `<div class="card">${finalGenre}</div>`;
+                
+                // Save the result to localStorage
+                const timestamp = new Date().toISOString();
+                saveCardResultToLocalStorage(finalGenre, revealedGenres, timestamp);
+              }
+            }, 400);
+          }
+        });
+      });
+    }
+
+    dealCards();
+    cardContainer.addEventListener('click', handleInitialPick);
+
+    // Expose functions to global scope for console access
+    window.getCardResult = getCardResult;
+    window.getGameSessions = getGameSessions;
+    window.getLastSession = getLastSession;
+    window.clearCardData = function() {
+      localStorage.removeItem('cardGameResult');
+      localStorage.removeItem('gameSessionHistory');
+      localStorage.removeItem('lastGameSession');
+      console.log('Card game data cleared');
+    };
+  </script>
+</body>
+</html>
